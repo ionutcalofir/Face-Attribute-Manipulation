@@ -48,19 +48,22 @@ class StarGAN:
     with tf.variable_scope(name) as scope:
       if reuse:
         tf.get_variable_scope().reuse_variables()
-
-      # testing
-      self.nc = c
       tf.summary.image('img_generator', img)
+
+      # labels concatenated to image
+      with tf.variable_scope('reshape'):
+        img_reshape = tf.concat(
+                        [img, tf.tile(c, [1, self.img_height, self.img_width, 1])],
+                        3)
 
       # down-sampling
       with tf.variable_scope('down-sampling'):
         with tf.variable_scope('conv1'):
           W_conv1 = self._weight_variable([7, 7, self.img_c + self.nc, 64])
           b_conv1 = self._bias_variable([64])
-          h_conv1 = tf.nn.relu(self._conv2d(img, W_conv1,
+          h_conv1 = tf.nn.relu(self._conv2d(img_reshape, W_conv1,
                                             strides=[1, 1, 1, 1],
-                                           padding=[0, 3, 3, 0])
+                                            padding=[0, 3, 3, 0])
                                + b_conv1)
           tf.summary.histogram("weights", W_conv1)
           tf.summary.histogram("biases", b_conv1)
@@ -283,7 +286,7 @@ class StarGAN:
     """
     generates a variable of a given shape
     """
-    initial = tf.truncated_normal(shape, stddev=0, name='tn')
+    initial = tf.truncated_normal(shape, stddev=0.1, name='tn')
     return tf.get_variable(name='W', initializer=initial)
     # return tf.Variable(initial, name='W')
 
@@ -311,15 +314,37 @@ class StarGAN:
 
     self.x = tf.placeholder(tf.float32, [None, self.img_height,
                                          self.img_width, self.img_c])
-    self.y = tf.placeholder(tf.float32, [None, self.nc])
-    self.y_target = tf.placeholder(tf.float32, [None, self.nc])
+    self.y = tf.placeholder(tf.float32, [None, 1, 1, self.nc])
+    self.y_target = tf.placeholder(tf.float32, [None, 1, 1, self.nc])
 
-    self.img_g = self._generator(self.x, 0)
-    self.img_gg = self._generator(self.img_g, 0, reuse=True)
-    # self.img_g = self._generator(self.x, self.y_target)
-    # self.img_gg = self._generator(self.img_g, self.y)
+    # self.img_g = self._generator(self.x, 0)
+    # self.img_gg = self._generator(self.img_g, 0, reuse=True)
+    self.img_g = self._generator(self.x, self.y_target)
+    self.img_gg = self._generator(self.img_g, self.y, reuse=True)
     self.h_src_real, self.h_cls_real = self._discriminator(self.x)
     self.h_src_fake, self.h_cls_fake = self._discriminator(self.img_g, reuse=True)
+
+    self.src_real_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                            logits=self.h_src_real,
+                            labels=tf.ones_like(self.h_src_real),
+                            name='src_real_sigmoid'),
+                          name='src_real_loss')
+    self.src_fake_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                          logits=self.h_src_fake,
+                          labels=tf.zeros_like(self.h_src_fake)))
+    self.adv_loss = self.src_real_loss + self.src_fake_loss
+
+    self.cls_real_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                          logits=self.h_cls_real,
+                          labels=self.y))
+    self.cls_fake_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                          logits=self.h_cls_fake,
+                          labels=self.y_target))
+    self.rec_loss = tf.reduce_mean(tf.abs(self.img_g - self.img_gg))
+
+    self.d_loss = self.adv_loss + self.lambda_cls * self.cls_real_loss
+    self.g_loss = self.adv_loss + self.lambda_cls * self.cls_fake_loss \
+                  + self.lambda_rec * self.rec_loss
 
   def train(self):
     # testing
@@ -327,16 +352,23 @@ class StarGAN:
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = np.reshape(img, (1, 128, 128, 3))
 
+    img_y = np.zeros((1, 1, 1, 7))
+    img_y[0][0][0][4] = 1
+
     summ = tf.summary.merge_all()
     with tf.Session() as sess:
       sess.run(tf.global_variables_initializer())
       writer = tf.summary.FileWriter('tensorboard/logger')
 
-      s = sess.run(summ, feed_dict={self.x: img})
+      s = sess.run(summ,
+          feed_dict={self.x: img, self.y: img_y, self.y_target: img_y})
       writer.add_summary(s, 1)
 
-      [img_g, img_gg]  = sess.run([self.img_g, self.img_gg], feed_dict={self.x: img})
-      print(img_g.shape)
-      print(img_gg.shape)
+      d_loss = sess.run(self.d_loss,
+          feed_dict={self.x: img, self.y: img_y, self.y_target: img_y})
+      g_loss = sess.run(self.g_loss,
+          feed_dict={self.x: img, self.y: img_y, self.y_target: img_y})
+      print(d_loss)
+      print(g_loss)
 
       writer.add_graph(sess.graph)
