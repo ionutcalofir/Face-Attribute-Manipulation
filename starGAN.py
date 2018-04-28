@@ -1,7 +1,8 @@
 import cv2
-
 import numpy as np
 import tensorflow as tf
+
+from utils import Utils
 
 class StarGAN:
   def __init__(self,
