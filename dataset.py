@@ -19,6 +19,10 @@ class Dataset:
     self.anno_path = anno_path
     self.imgs_path = imgs_path
 
+    self.train_batch_idx = 0
+    self.val_batch_idx = 0
+    self.test_batch_idx = 0
+
   def get_train_batch(self, n_batch=None):
     if self._x_train is None and self._y_train is None:
       self._get_dataset()
@@ -26,10 +30,25 @@ class Dataset:
     if n_batch is None:
       return self._x_train, self._y_train
 
-    n_random = [random.randint(0, len(self._x_train) - 1)
-                for i in list(range(0, n_batch))]
-    x_batch = [self.imgs_path + '/' + self._x_train[i] for i in n_random]
-    y_batch = [self._y_train[i] for i in n_random]
+    x_batch = [self.imgs_path + '/' + self._x_train[i]
+               for i in list(range(
+                 self.train_batch_idx,
+                 min(self.train_batch_idx + n_batch,
+                     len(self._x_train))))]
+    y_batch = [self._y_train[i]
+               for i in list(range(
+                 self.train_batch_idx,
+                 min(self.train_batch_idx + n_batch,
+                     len(self._y_train))))]
+
+    if self.train_batch_idx + n_batch < len(self._x_train):
+      self.train_batch_idx = self.train_batch_idx + n_batch
+
+    # n_random = [random.randint(0, len(self._x_train) - 1)
+                # for i in list(range(0, n_batch))]
+    # x_batch = [self.imgs_path + '/' + self._x_train[i] for i in n_random]
+    # y_batch = [self._y_train[i] for i in n_random]
+
     return x_batch, y_batch
 
   def get_val_batch(self, n_batch=None):
@@ -39,10 +58,25 @@ class Dataset:
     if n_batch is None:
       return self._x_val, self._y_val
 
-    n_random = [random.randint(0, len(self._x_val) - 1)
-                for i in list(range(0, n_batch))]
-    x_batch = [self.imgs_path + '/' + self._x_val[i] for i in n_random]
-    y_batch = [self._y_val[i] for i in n_random]
+    x_batch = [self.imgs_path + '/' + self._x_val[i]
+               for i in list(range(
+                 self.val_batch_idx,
+                 min(self.val_batch_idx + n_batch,
+                     len(self._x_val))))]
+    y_batch = [self._y_val[i]
+               for i in list(range(
+                 self.val_batch_idx,
+                 min(self.val_batch_idx + n_batch,
+                     len(self._y_val))))]
+
+    if self.val_batch_idx + n_batch < len(self._x_val):
+      self.val_batch_idx = self.val_batch_idx + n_batch
+
+    # n_random = [random.randint(0, len(self._x_val) - 1)
+                # for i in list(range(0, n_batch))]
+    # x_batch = [self.imgs_path + '/' + self._x_val[i] for i in n_random]
+    # y_batch = [self._y_val[i] for i in n_random]
+
     return x_batch, y_batch
 
   def get_test_batch(self, n_batch=None):
@@ -52,10 +86,25 @@ class Dataset:
     if n_batch is None:
       return self._x_test, self._y_test
 
-    n_random = [random.randint(0, len(self._x_test) - 1)
-                for i in list(range(0, n_batch))]
-    x_batch = [self.imgs_path + '/' + self._x_test[i] for i in n_random]
-    y_batch = [self._y_test[i] for i in n_random]
+    x_batch = [self.imgs_path + '/' + self._x_test[i]
+               for i in list(range(
+                 self.test_batch_idx,
+                 min(self.test_batch_idx + n_batch,
+                     len(self._x_test))))]
+    y_batch = [self._y_test[i]
+               for i in list(range(
+                 self.test_batch_idx,
+                 min(self.test_batch_idx + n_batch,
+                     len(self._y_test))))]
+
+    if self.test_batch_idx + n_batch < len(self._x_test):
+      self.test_batch_idx = self.test_batch_idx + n_batch
+
+    # n_random = [random.randint(0, len(self._x_test) - 1)
+                # for i in list(range(0, n_batch))]
+    # x_batch = [self.imgs_path + '/' + self._x_test[i] for i in n_random]
+    # y_batch = [self._y_test[i] for i in n_random]
+
     return x_batch, y_batch
 
   def _get_dataset(self):
@@ -67,6 +116,10 @@ class Dataset:
         self._x_test.append(img_line[0])
         self._y_test.append([int(i) for i in img_line[1:]])
 
+      tup = list(zip(self._x_test, self._y_test))
+      random.shuffle(tup)
+      self._x_test, self._y_test = zip(*tup)
+
     self._x_val = []
     self._y_val = []
     with open(self.anno_path + '/val.txt') as f:
@@ -75,6 +128,10 @@ class Dataset:
         self._x_val.append(img_line[0])
         self._y_val.append([int(i) for i in img_line[1:]])
 
+      tup = list(zip(self._x_val, self._y_val))
+      random.shuffle(tup)
+      self._x_val, self._y_val = zip(*tup)
+
     self._x_train = []
     self._y_train = []
     with open(self.anno_path + '/train.txt') as f:
@@ -82,6 +139,10 @@ class Dataset:
         img_line = line.rstrip().split()
         self._x_train.append(img_line[0])
         self._y_train.append([int(i) for i in img_line[1:]])
+
+      tup = list(zip(self._x_train, self._y_train))
+      random.shuffle(tup)
+      self._x_train, self._y_train = zip(*tup)
 
   @staticmethod
   def build_dataset_celeba(anno_path='dataset/CelebA/anno',

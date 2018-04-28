@@ -28,9 +28,9 @@ class Utils:
 
     x_batch = np.array(x_batch)
 
-    return x_batch.astype(np.float64), \
-           y_batch.astype(np.float64), \
-           y_target_batch.astype(np.float64)
+    return x_batch.astype(np.float32), \
+           y_batch.astype(np.float32), \
+           y_target_batch.astype(np.float32)
 
   def next_batch_val(self, n_batch=None):
     x_batch = []
@@ -51,9 +51,9 @@ class Utils:
 
     x_batch = np.array(x_batch)
 
-    return x_batch.astype(np.float64), \
-           y_batch.astype(np.float64), \
-           y_target_batch.astype(np.float64)
+    return x_batch.astype(np.float32), \
+           y_batch.astype(np.float32), \
+           y_target_batch.astype(np.float32)
 
   def next_batch_test(self, n_batch=None):
     x_batch = []
@@ -74,9 +74,9 @@ class Utils:
 
     x_batch = np.array(x_batch)
 
-    return x_batch.astype(np.float64), \
-           y_batch.astype(np.float64), \
-           y_target_batch.astype(np.float64)
+    return x_batch.astype(np.float32), \
+           y_batch.astype(np.float32), \
+           y_target_batch.astype(np.float32)
 
   def y_target(self, n_labels, n_batch):
     if self._y_target is None:
@@ -107,7 +107,7 @@ class Utils:
     return img
 
   def normalize_img(self, img):
-    img = img.astype(np.float64)
+    img = img.astype(np.float32)
     img = img / 127.5 - 1
 
     return img
