@@ -12,7 +12,7 @@ class StarGAN:
                nd=7,
                nc=7,
                batch_size=16,
-               no_epochs=10,
+               no_epochs=1,
                lambda_cls=1,
                lambda_rec=10,
                learning_rate=0.0001,
@@ -46,10 +46,9 @@ class StarGAN:
     self.adam_beta2 = adam_beta2
 
   def _generator(self, img, c, reuse=False, name='generator'):
-    with tf.variable_scope(name) as scope:
+    with tf.variable_scope(name):
       if reuse:
         tf.get_variable_scope().reuse_variables()
-      tf.summary.image('img_generator', img)
 
       # labels concatenated to image
       with tf.variable_scope('reshape'):
@@ -66,9 +65,6 @@ class StarGAN:
                                             strides=[1, 1, 1, 1],
                                             padding=[0, 3, 3, 0])
                                + b_conv1)
-          tf.summary.histogram("weights", W_conv1)
-          tf.summary.histogram("biases", b_conv1)
-          tf.summary.histogram("activations", h_conv1)
 
         with tf.variable_scope('conv2'):
           W_conv2 = self._weight_variable([4, 4, 64, 128])
@@ -176,15 +172,15 @@ class StarGAN:
                                             padding=[0, 3, 3, 0])
                              + b_conv1)
 
+          if reuse == False:
+            tf.summary.histogram("activations", h_out)
+
     return h_out
 
   def _discriminator(self, img, reuse=False, name='discriminator'):
     with tf.variable_scope(name):
       if reuse:
         tf.get_variable_scope().reuse_variables()
-
-      # testing
-      tf.summary.image('img_generator', img)
 
       # input layer
       with tf.variable_scope('input-layer'):
@@ -195,9 +191,6 @@ class StarGAN:
                                                   strides=[1, 2, 2, 1],
                                                   padding=[0, 1, 1, 0])
                                      + b_conv1)
-          tf.summary.histogram("weights", W_conv1)
-          tf.summary.histogram("biases", b_conv1)
-          tf.summary.histogram("activations", h_conv1)
 
       # hidden layer
       with tf.variable_scope('hidden-layer'):
@@ -262,6 +255,9 @@ class StarGAN:
                                strides=[1, 1, 1, 1],
                                padding=[0, 0, 0, 0]) \
                   + b_cls
+          if reuse == False:
+            tf.summary.histogram("activations", h_src)
+            tf.summary.histogram("activations", h_cls)
 
       return h_src, h_cls
 
@@ -287,7 +283,7 @@ class StarGAN:
     """
     generates a variable of a given shape
     """
-    initial = tf.truncated_normal(shape, stddev=0.1, name='tn')
+    initial = tf.truncated_normal(shape, stddev=0.5, name='tn')
     return tf.get_variable(name='W', initializer=initial)
     # return tf.Variable(initial, name='W')
 
@@ -318,8 +314,6 @@ class StarGAN:
     self.y = tf.placeholder(tf.float32, [None, 1, 1, self.nc])
     self.y_target = tf.placeholder(tf.float32, [None, 1, 1, self.nc])
 
-    # self.img_g = self._generator(self.x, 0)
-    # self.img_gg = self._generator(self.img_g, 0, reuse=True)
     self.img_g = self._generator(self.x, self.y_target)
     self.img_gg = self._generator(self.img_g, self.y, reuse=True)
     self.h_src_real, self.h_cls_real = self._discriminator(self.x)
@@ -331,45 +325,83 @@ class StarGAN:
                             name='src_real_sigmoid'),
                           name='src_real_loss')
     self.src_fake_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                          logits=self.h_src_fake,
-                          labels=tf.zeros_like(self.h_src_fake)))
+                            logits=self.h_src_fake,
+                            labels=tf.zeros_like(self.h_src_fake),
+                            name='src_fake_sigmoid'),
+                          name='src_fake_loss')
     self.adv_loss = self.src_real_loss + self.src_fake_loss
 
     self.cls_real_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                          logits=self.h_cls_real,
-                          labels=self.y))
+                            logits=self.h_cls_real,
+                            labels=self.y,
+                            name='cls_real_sigmoid'),
+                          name='cls_real_loss')
     self.cls_fake_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                          logits=self.h_cls_fake,
-                          labels=self.y_target))
-    self.rec_loss = tf.reduce_mean(tf.abs(self.img_g - self.img_gg))
+                            logits=self.h_cls_fake,
+                            labels=self.y_target,
+                            name='cls_fake_sigmoid'),
+                          name='cls_fake_loss')
+    self.rec_loss = tf.reduce_mean(tf.abs(self.x - self.img_gg), name='rec_loss')
 
     self.d_loss = self.adv_loss + self.lambda_cls * self.cls_real_loss
     self.g_loss = self.adv_loss + self.lambda_cls * self.cls_fake_loss \
                   + self.lambda_rec * self.rec_loss
 
+    t_vars = tf.trainable_variables()
+    self.d_vars = [var for var in t_vars if 'discriminator' in var.name]
+    self.g_vars = [var for var in t_vars if 'generator' in var.name]
+
+    self.d_optim = tf.train.AdamOptimizer(
+                      learning_rate=self.learning_rate,
+                      beta1=self.adam_beta1,
+                      beta2=self.adam_beta2,
+                      name='adam_discriminator').minimize(self.d_loss, var_list=self.d_vars)
+    self.g_optim = tf.train.AdamOptimizer(
+                      learning_rate=self.learning_rate,
+                      beta1=self.adam_beta1,
+                      beta2=self.adam_beta2,
+                      name='adam_generator').minimize(self.g_loss, var_list=self.g_vars)
+
   def train(self):
-    # testing
-    img = cv2.imread('lena.jpg')
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = np.reshape(img, (1, 128, 128, 3))
-
-    img_y = np.zeros((1, 1, 1, 7))
-    img_y[0][0][0][4] = 1
-
+    saver = tf.train.Saver()
     summ = tf.summary.merge_all()
     with tf.Session() as sess:
       sess.run(tf.global_variables_initializer())
       writer = tf.summary.FileWriter('tensorboard/logger')
 
-      s = sess.run(summ,
-          feed_dict={self.x: img, self.y: img_y, self.y_target: img_y})
-      writer.add_summary(s, 1)
+      summ_count = 1
+      batch_iteration = 10130 # 162079 train examples with batch_size = 16
+      for ep in list(range(self.no_epochs)):
+        ut = Utils() # shuffle data every epoch
+        for it in list(range(batch_iteration)):
+          x_batch, y_batch, y_target_batch = ut.next_batch_train(self.batch_size)
 
-      d_loss = sess.run(self.d_loss,
-          feed_dict={self.x: img, self.y: img_y, self.y_target: img_y})
-      g_loss = sess.run(self.g_loss,
-          feed_dict={self.x: img, self.y: img_y, self.y_target: img_y})
-      print(d_loss)
-      print(g_loss)
+          s = sess.run(
+                summ,
+                feed_dict={self.x: x_batch,
+                           self.y: y_batch,
+                           self.y_target: y_target_batch})
+          writer.add_summary(s, summ_count)
+
+          for _ in list(range(2)):
+            _, d_loss = sess.run(
+                [self.d_optim, self.d_loss],
+                feed_dict={self.x: x_batch,
+                           self.y: y_batch,
+                           self.y_target: y_target_batch})
+
+          _, g_loss = sess.run(
+                [self.g_optim, self.g_loss],
+                feed_dict={self.x: x_batch,
+                           self.y: y_batch,
+                           self.y_target: y_target_batch})
+
+          if it % 100 == 0:
+            print('iteration: ' + str(it) + ', epoch: ' + str(ep) + ', '
+                  + 'g_loss: ' + str(g_loss) + ', '
+                  + 'd_loss: ' + str(d_loss))
+            saver.save(sess, 'models/model_' + str(summ_count) + '.ckpt')
+
+          summ_count = summ_count + 1
 
       writer.add_graph(sess.graph)
