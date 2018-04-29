@@ -1,5 +1,5 @@
 from starGAN import StarGAN
 
-model = StarGAN(batch_size=1)
+model = StarGAN(batch_size=8)
 model.build()
 model.train()

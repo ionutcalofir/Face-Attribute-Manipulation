@@ -102,7 +102,7 @@ class Utils:
   def _crop_and_resize_img_celeba(self, img, height):
     height_diff = int((img.shape[0] - height) / 2)
     img = img[height_diff:-height_diff, :, :]
-    img = cv2.resize(img, (128, 128))
+    img = cv2.resize(img, (64, 64))
 
     return img
 
@@ -126,3 +126,7 @@ class Utils:
     cv2.imshow('image', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+  def save_img(self, img, name):
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(name, img)
