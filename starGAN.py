@@ -61,9 +61,14 @@ class StarGAN:
         with tf.variable_scope('conv1'):
           W_conv1 = self._weight_variable([7, 7, self.img_c + self.nc, 64])
           b_conv1 = self._bias_variable([64])
-          h_conv1 = tf.nn.relu(self._conv2d(img_reshape, W_conv1,
-                                            strides=[1, 1, 1, 1],
-                                            padding=[0, 3, 3, 0])
+          # h_conv1 = tf.nn.relu(self._conv2d(img_reshape, W_conv1,
+                                            # strides=[1, 1, 1, 1],
+                                            # padding=[0, 3, 3, 0])
+                               # + b_conv1)
+          h_conv1 = tf.nn.relu(self._instance_normalization(
+                                  self._conv2d(img_reshape, W_conv1,
+                                               strides=[1, 1, 1, 1],
+                                               padding=[0, 3, 3, 0]))
                                + b_conv1)
 
           if reuse == False:
@@ -74,9 +79,14 @@ class StarGAN:
         with tf.variable_scope('conv2'):
           W_conv2 = self._weight_variable([4, 4, 64, 128])
           b_conv2 = self._bias_variable([128])
-          h_conv2 = tf.nn.relu(self._conv2d(h_conv1, W_conv2,
-                                            strides=[1, 2, 2, 1],
-                                            padding=[0, 1, 1, 0])
+          # h_conv2 = tf.nn.relu(self._conv2d(h_conv1, W_conv2,
+                                            # strides=[1, 2, 2, 1],
+                                            # padding=[0, 1, 1, 0])
+                               # + b_conv2)
+          h_conv2 = tf.nn.relu(self._instance_normalization(
+                                  self._conv2d(h_conv1, W_conv2,
+                                               strides=[1, 2, 2, 1],
+                                               padding=[0, 1, 1, 0]))
                                + b_conv2)
 
           if reuse == False:
@@ -87,9 +97,14 @@ class StarGAN:
         with tf.variable_scope('conv3'):
           W_conv3 = self._weight_variable([4, 4, 128, 256])
           b_conv3 = self._bias_variable([256])
-          h_conv3 = tf.nn.relu(self._conv2d(h_conv2, W_conv3,
-                                            strides=[1, 2, 2, 1],
-                                            padding=[0, 1, 1, 0])
+          # h_conv3 = tf.nn.relu(self._conv2d(h_conv2, W_conv3,
+                                            # strides=[1, 2, 2, 1],
+                                            # padding=[0, 1, 1, 0])
+                               # + b_conv3)
+          h_conv3 = tf.nn.relu(self._instance_normalization(
+                                  self._conv2d(h_conv2, W_conv3,
+                                               strides=[1, 2, 2, 1],
+                                               padding=[0, 1, 1, 0]))
                                + b_conv3)
 
           if reuse == False:
@@ -102,9 +117,14 @@ class StarGAN:
         with tf.variable_scope('res_block1'):
           W_res_block1 = self._weight_variable([3, 3, 256, 256])
           b_res_block1 = self._bias_variable([256])
-          h_res_block1 = tf.nn.relu(self._residual_block(h_conv3, W_res_block1,
-                                                         strides=[1, 1, 1, 1],
-                                                         padding=[0, 1, 1, 0])
+          # h_res_block1 = tf.nn.relu(self._residual_block(h_conv3, W_res_block1,
+                                                         # strides=[1, 1, 1, 1],
+                                                         # padding=[0, 1, 1, 0])
+                                    # + b_res_block1)
+          h_res_block1 = tf.nn.relu(self._instance_normalization(
+                                      self._residual_block(h_conv3, W_res_block1,
+                                                           strides=[1, 1, 1, 1],
+                                                           padding=[0, 1, 1, 0]))
                                     + b_res_block1)
 
           if reuse == False:
@@ -115,9 +135,14 @@ class StarGAN:
         with tf.variable_scope('res_block2'):
           W_res_block2 = self._weight_variable([3, 3, 256, 256])
           b_res_block2 = self._bias_variable([256])
-          h_res_block2 = tf.nn.relu(self._residual_block(h_res_block1, W_res_block2,
-                                                         strides=[1, 1, 1, 1],
-                                                         padding=[0, 1, 1, 0])
+          # h_res_block2 = tf.nn.relu(self._residual_block(h_res_block1, W_res_block2,
+                                                         # strides=[1, 1, 1, 1],
+                                                         # padding=[0, 1, 1, 0])
+                                    # + b_res_block2)
+          h_res_block2 = tf.nn.relu(self._instance_normalization(
+                                      self._residual_block(h_res_block1, W_res_block2,
+                                                           strides=[1, 1, 1, 1],
+                                                           padding=[0, 1, 1, 0]))
                                     + b_res_block2)
 
           if reuse == False:
@@ -128,9 +153,14 @@ class StarGAN:
         with tf.variable_scope('res_block3'):
           W_res_block3 = self._weight_variable([3, 3, 256, 256])
           b_res_block3 = self._bias_variable([256])
-          h_res_block3 = tf.nn.relu(self._residual_block(h_res_block2, W_res_block3,
-                                                         strides=[1, 1, 1, 1],
-                                                         padding=[0, 1, 1, 0])
+          # h_res_block3 = tf.nn.relu(self._residual_block(h_res_block2, W_res_block3,
+                                                         # strides=[1, 1, 1, 1],
+                                                         # padding=[0, 1, 1, 0])
+                                    # + b_res_block3)
+          h_res_block3 = tf.nn.relu(self._instance_normalization(
+                                      self._residual_block(h_res_block2, W_res_block3,
+                                                           strides=[1, 1, 1, 1],
+                                                           padding=[0, 1, 1, 0]))
                                     + b_res_block3)
 
           if reuse == False:
@@ -141,9 +171,14 @@ class StarGAN:
         with tf.variable_scope('res_block4'):
           W_res_block4 = self._weight_variable([3, 3, 256, 256])
           b_res_block4 = self._bias_variable([256])
-          h_res_block4 = tf.nn.relu(self._residual_block(h_res_block3, W_res_block4,
-                                                         strides=[1, 1, 1, 1],
-                                                         padding=[0, 1, 1, 0])
+          # h_res_block4 = tf.nn.relu(self._residual_block(h_res_block3, W_res_block4,
+                                                         # strides=[1, 1, 1, 1],
+                                                         # padding=[0, 1, 1, 0])
+                                    # + b_res_block4)
+          h_res_block4 = tf.nn.relu(self._instance_normalization(
+                                      self._residual_block(h_res_block3, W_res_block4,
+                                                           strides=[1, 1, 1, 1],
+                                                           padding=[0, 1, 1, 0]))
                                     + b_res_block4)
 
           if reuse == False:
@@ -154,9 +189,14 @@ class StarGAN:
         with tf.variable_scope('res_block5'):
           W_res_block5 = self._weight_variable([3, 3, 256, 256])
           b_res_block5 = self._bias_variable([256])
-          h_res_block5 = tf.nn.relu(self._residual_block(h_res_block4, W_res_block5,
-                                                         strides=[1, 1, 1, 1],
-                                                         padding=[0, 1, 1, 0])
+          # h_res_block5 = tf.nn.relu(self._residual_block(h_res_block4, W_res_block5,
+                                                         # strides=[1, 1, 1, 1],
+                                                         # padding=[0, 1, 1, 0])
+                                    # + b_res_block5)
+          h_res_block5 = tf.nn.relu(self._instance_normalization(
+                                      self._residual_block(h_res_block4, W_res_block5,
+                                                          strides=[1, 1, 1, 1],
+                                                          padding=[0, 1, 1, 0]))
                                     + b_res_block5)
 
           if reuse == False:
@@ -167,11 +207,15 @@ class StarGAN:
         with tf.variable_scope('res_block6'):
           W_res_block6 = self._weight_variable([3, 3, 256, 256])
           b_res_block6 = self._bias_variable([256])
-          h_res_block6 = tf.nn.relu(self._residual_block(h_res_block5, W_res_block6,
-                                                         strides=[1, 1, 1, 1],
-                                                         padding=[0, 1, 1, 0])
+          # h_res_block6 = tf.nn.relu(self._residual_block(h_res_block5, W_res_block6,
+                                                         # strides=[1, 1, 1, 1],
+                                                         # padding=[0, 1, 1, 0])
+                                    # + b_res_block6)
+          h_res_block6 = tf.nn.relu(self._instance_normalization(
+                                      self._residual_block(h_res_block5, W_res_block6,
+                                                           strides=[1, 1, 1, 1],
+                                                           padding=[0, 1, 1, 0]))
                                     + b_res_block6)
-
 
           if reuse == False:
             tf.summary.histogram("weight", W_res_block6)
@@ -190,10 +234,16 @@ class StarGAN:
                                                             dtype=np.int32)),
                                       128],
                                       dtype=tf.int32)
-          h_deconv1 = tf.nn.relu(self._deconv2d(h_res_block6, W_deconv1,
-                                                output_shape=output_shape,
-                                                strides=[1, 2, 2, 1],
-                                                padding=[0, 1, 1, 0])
+          # h_deconv1 = tf.nn.relu(self._deconv2d(h_res_block6, W_deconv1,
+                                                # output_shape=output_shape,
+                                                # strides=[1, 2, 2, 1],
+                                                # padding=[0, 1, 1, 0])
+                                 # + b_deconv1)
+          h_deconv1 = tf.nn.relu(self._instance_normalization(
+                                    self._deconv2d(h_res_block6, W_deconv1,
+                                                   output_shape=output_shape,
+                                                   strides=[1, 2, 2, 1],
+                                                   padding=[0, 1, 1, 0]))
                                  + b_deconv1)
 
           if reuse == False:
@@ -209,11 +259,18 @@ class StarGAN:
                                       self.img_width,
                                       64],
                                       dtype=tf.int32)
-          h_deconv2 = tf.nn.relu(self._deconv2d(h_deconv1, W_deconv2,
-                                                output_shape=output_shape,
-                                                strides=[1, 2, 2, 1],
-                                                padding=[0, 1, 1, 0])
+          # h_deconv2 = tf.nn.relu(self._deconv2d(h_deconv1, W_deconv2,
+                                                # output_shape=output_shape,
+                                                # strides=[1, 2, 2, 1],
+                                                # padding=[0, 1, 1, 0])
+                                 # + b_deconv2)
+          h_deconv2 = tf.nn.relu(self._instance_normalization(
+                                    self._deconv2d(h_deconv1, W_deconv2,
+                                                   output_shape=output_shape,
+                                                   strides=[1, 2, 2, 1],
+                                                   padding=[0, 1, 1, 0]))
                                  + b_deconv2)
+
           if reuse == False:
             tf.summary.histogram("weight", W_deconv2)
             tf.summary.histogram("bias", b_deconv2)
@@ -360,6 +417,20 @@ class StarGAN:
 
       return h_src, h_cls
 
+  def _instance_normalization(self, x, name='instance_normalization'):
+    with tf.variable_scope(name):
+      depth = x.get_shape()[3]
+      scale = tf.get_variable('scale',
+                [depth],
+                initializer=tf.random_normal_initializer(1.0, 0.02, dtype=tf.float32))
+      offset = tf.get_variable('offset', [depth], initializer=tf.constant_initializer(0.0))
+      mean, variance = tf.nn.moments(x, axes=[1, 2], keep_dims=True)
+      epsilon = 1e-5
+      inv = tf.rsqrt(variance + epsilon)
+      normalized = (x - mean) * inv
+
+      return scale * normalized + offset
+
   def _conv2d(self, x, W, strides=[1, 1, 1, 1], padding=[0, 0, 0, 0]):
     """
     returns a 2d convolutional layer
@@ -483,14 +554,14 @@ class StarGAN:
       sess.run(tf.global_variables_initializer())
       writer = tf.summary.FileWriter('tensorboard/logger')
 
-      summ_count = 1
+      summ_count = 0
       batch_iteration = 20260 # 162079 train examples with batch_size = 8
       for ep in list(range(self.no_epochs)):
         ut = Utils() # shuffle data every epoch
         for it in list(range(batch_iteration)):
           x_batch, y_batch, y_target_batch = ut.next_batch_train(self.batch_size)
 
-          if summ_count % 10 == 0:
+          if summ_count % 5 == 0:
             s = sess.run(
                   summ,
                   feed_dict={self.x: x_batch,
