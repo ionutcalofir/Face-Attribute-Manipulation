@@ -453,19 +453,13 @@ class StarGAN:
     """
     generates a variable of a given shape
     """
-    initial = tf.truncated_normal(shape, stddev=0.1, name='tn')
-
-    # return tf.Variable(initial, name='W')
-    return tf.get_variable(name='W', initializer=initial)
+    return tf.get_variable(name='W', shape=shape, initializer=None)
 
   def _bias_variable(self, shape):
     """
     generates a bias variable of a given shape
     """
-    initial = tf.constant(0.1, shape=shape, name='C')
-
-    # return tf.Variable(initial, name='b')
-    return tf.get_variable(name='b', initializer=initial)
+    return tf.get_variable(name='b', shape=shape, initializer=None)
 
   def _residual_block(self, x, W, strides=[1, 1, 1, 1], padding=[0, 0, 0, 0]):
     """
@@ -569,18 +563,18 @@ class StarGAN:
                              self.y_target: y_target_batch})
             writer.add_summary(s, summ_count)
 
-          _, d_loss = sess.run(
-              [self.d_optim, self.d_loss],
+          for _ in list(range(5)):
+            _, d_loss = sess.run(
+                [self.d_optim, self.d_loss],
+                feed_dict={self.x: x_batch,
+                           self.y: y_batch,
+                           self.y_target: y_target_batch})
+
+          _, g_loss = sess.run(
+              [self.g_optim, self.g_loss],
               feed_dict={self.x: x_batch,
                          self.y: y_batch,
                          self.y_target: y_target_batch})
-
-          for _ in list(range(2)):
-            _, g_loss = sess.run(
-                  [self.g_optim, self.g_loss],
-                  feed_dict={self.x: x_batch,
-                            self.y: y_batch,
-                            self.y_target: y_target_batch})
 
           print('iteration: ' + str(it) + ', epoch: ' + str(ep))
           if it % 100 == 0:
