@@ -576,7 +576,7 @@ class StarGAN:
                          self.y_target: y_target_batch})
 
           print('epoch: ' + str(ep) + ', iteration: ' + str(it))
-          if it % 5 == 0:
+          if it % 100 == 0:
             print('epoch: ' + str(ep) + ', iteration: ' + str(it) + ', '
                   + 'g_loss: ' + str(g_loss) + ', '
                   + 'd_loss: ' + str(d_loss))
