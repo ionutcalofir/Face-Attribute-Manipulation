@@ -1,4 +1,6 @@
 dataset
 models
 tensorboard
+backup
+checkpoints
 *.pyc
