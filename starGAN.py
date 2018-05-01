@@ -70,8 +70,6 @@ class StarGAN:
                                                padding=[0, 3, 3, 0]))
                                + b_conv1)
 
-          self.test = b_conv1
-
           if reuse == False:
             tf.summary.histogram("weight", W_conv1)
             tf.summary.histogram("bias", b_conv1)
