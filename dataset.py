@@ -30,6 +30,8 @@ class Dataset:
     if n_batch is None:
       return self._x_train, self._y_train
 
+    batch_end = False
+
     x_batch = [self.imgs_path + '/' + self._x_train[i]
                for i in list(range(
                  self.train_batch_idx,
@@ -43,13 +45,10 @@ class Dataset:
 
     if self.train_batch_idx + n_batch < len(self._x_train):
       self.train_batch_idx = self.train_batch_idx + n_batch
+    else:
+      batch_end = True
 
-    # n_random = [random.randint(0, len(self._x_train) - 1)
-                # for i in list(range(0, n_batch))]
-    # x_batch = [self.imgs_path + '/' + self._x_train[i] for i in n_random]
-    # y_batch = [self._y_train[i] for i in n_random]
-
-    return x_batch, y_batch
+    return x_batch, y_batch, batch_end
 
   def get_val_batch(self, n_batch=None):
     if self._x_val is None and self._y_val is None:
@@ -57,6 +56,8 @@ class Dataset:
 
     if n_batch is None:
       return self._x_val, self._y_val
+
+    batch_end = False
 
     x_batch = [self.imgs_path + '/' + self._x_val[i]
                for i in list(range(
@@ -71,13 +72,10 @@ class Dataset:
 
     if self.val_batch_idx + n_batch < len(self._x_val):
       self.val_batch_idx = self.val_batch_idx + n_batch
+    else:
+      batch_end = True
 
-    # n_random = [random.randint(0, len(self._x_val) - 1)
-                # for i in list(range(0, n_batch))]
-    # x_batch = [self.imgs_path + '/' + self._x_val[i] for i in n_random]
-    # y_batch = [self._y_val[i] for i in n_random]
-
-    return x_batch, y_batch
+    return x_batch, y_batch, batch_end
 
   def get_test_batch(self, n_batch=None):
     if self._x_test is None and self._y_test is None:
@@ -85,6 +83,8 @@ class Dataset:
 
     if n_batch is None:
       return self._x_test, self._y_test
+
+    batch_end = False
 
     x_batch = [self.imgs_path + '/' + self._x_test[i]
                for i in list(range(
@@ -99,13 +99,10 @@ class Dataset:
 
     if self.test_batch_idx + n_batch < len(self._x_test):
       self.test_batch_idx = self.test_batch_idx + n_batch
+    else:
+      batch_end = True
 
-    # n_random = [random.randint(0, len(self._x_test) - 1)
-                # for i in list(range(0, n_batch))]
-    # x_batch = [self.imgs_path + '/' + self._x_test[i] for i in n_random]
-    # y_batch = [self._y_test[i] for i in n_random]
-
-    return x_batch, y_batch
+    return x_batch, y_batch, batch_end
 
   def _get_dataset(self):
     self._x_test = []

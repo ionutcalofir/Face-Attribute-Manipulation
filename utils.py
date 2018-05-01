@@ -13,7 +13,7 @@ class Utils:
     x_batch = []
     y_batch = []
 
-    x_train, y_train = self.ds.get_train_batch(n_batch)
+    x_train, y_train, batch_end = self.ds.get_train_batch(n_batch)
     y_target = self.y_target(len(y_train[0]), len(y_train))
     for x in x_train:
       x_img = cv2.imread(x)
@@ -30,13 +30,14 @@ class Utils:
 
     return x_batch.astype(np.float32), \
            y_batch.astype(np.float32), \
-           y_target_batch.astype(np.float32)
+           y_target_batch.astype(np.float32), \
+           batch_end
 
   def next_batch_val(self, n_batch=None):
     x_batch = []
     y_batch = []
 
-    x_val, y_val = self.ds.get_val_batch(n_batch)
+    x_val, y_val, batch_end = self.ds.get_val_batch(n_batch)
     y_target = self.y_target(len(y_val[0]), len(y_val))
     for x in x_val:
       x_img = cv2.imread(x)
@@ -53,13 +54,14 @@ class Utils:
 
     return x_batch.astype(np.float32), \
            y_batch.astype(np.float32), \
-           y_target_batch.astype(np.float32)
+           y_target_batch.astype(np.float32), \
+           batch_end
 
   def next_batch_test(self, n_batch=None):
     x_batch = []
     y_batch = []
 
-    x_test, y_test = self.ds.get_test_batch(n_batch)
+    x_test, y_test, batch_end = self.ds.get_test_batch(n_batch)
     y_target = self.y_target(len(y_test[0]), len(y_test))
     for x in x_test:
       x_img = cv2.imread(x)
@@ -76,7 +78,8 @@ class Utils:
 
     return x_batch.astype(np.float32), \
            y_batch.astype(np.float32), \
-           y_target_batch.astype(np.float32)
+           y_target_batch.astype(np.float32), \
+           batch_end
 
   def y_target(self, n_labels, n_batch):
     if self._y_target is None:
