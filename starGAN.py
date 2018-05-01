@@ -1,4 +1,7 @@
+import os
 import cv2
+import pickle
+import shutil
 import numpy as np
 import tensorflow as tf
 
@@ -11,8 +14,8 @@ class StarGAN:
                img_c=3,
                nd=7,
                nc=7,
-               batch_size=16,
-               no_epochs=1,
+               batch_size=8,
+               no_epochs=2,
                lambda_cls=1,
                lambda_rec=10,
                learning_rate=0.0001,
@@ -61,15 +64,13 @@ class StarGAN:
         with tf.variable_scope('conv1'):
           W_conv1 = self._weight_variable([7, 7, self.img_c + self.nc, 64])
           b_conv1 = self._bias_variable([64])
-          # h_conv1 = tf.nn.relu(self._conv2d(img_reshape, W_conv1,
-                                            # strides=[1, 1, 1, 1],
-                                            # padding=[0, 3, 3, 0])
-                               # + b_conv1)
           h_conv1 = tf.nn.relu(self._instance_normalization(
                                   self._conv2d(img_reshape, W_conv1,
                                                strides=[1, 1, 1, 1],
                                                padding=[0, 3, 3, 0]))
                                + b_conv1)
+
+          self.test = b_conv1
 
           if reuse == False:
             tf.summary.histogram("weight", W_conv1)
@@ -79,10 +80,6 @@ class StarGAN:
         with tf.variable_scope('conv2'):
           W_conv2 = self._weight_variable([4, 4, 64, 128])
           b_conv2 = self._bias_variable([128])
-          # h_conv2 = tf.nn.relu(self._conv2d(h_conv1, W_conv2,
-                                            # strides=[1, 2, 2, 1],
-                                            # padding=[0, 1, 1, 0])
-                               # + b_conv2)
           h_conv2 = tf.nn.relu(self._instance_normalization(
                                   self._conv2d(h_conv1, W_conv2,
                                                strides=[1, 2, 2, 1],
@@ -97,10 +94,6 @@ class StarGAN:
         with tf.variable_scope('conv3'):
           W_conv3 = self._weight_variable([4, 4, 128, 256])
           b_conv3 = self._bias_variable([256])
-          # h_conv3 = tf.nn.relu(self._conv2d(h_conv2, W_conv3,
-                                            # strides=[1, 2, 2, 1],
-                                            # padding=[0, 1, 1, 0])
-                               # + b_conv3)
           h_conv3 = tf.nn.relu(self._instance_normalization(
                                   self._conv2d(h_conv2, W_conv3,
                                                strides=[1, 2, 2, 1],
@@ -117,10 +110,6 @@ class StarGAN:
         with tf.variable_scope('res_block1'):
           W_res_block1 = self._weight_variable([3, 3, 256, 256])
           b_res_block1 = self._bias_variable([256])
-          # h_res_block1 = tf.nn.relu(self._residual_block(h_conv3, W_res_block1,
-                                                         # strides=[1, 1, 1, 1],
-                                                         # padding=[0, 1, 1, 0])
-                                    # + b_res_block1)
           h_res_block1 = tf.nn.relu(self._instance_normalization(
                                       self._residual_block(h_conv3, W_res_block1,
                                                            strides=[1, 1, 1, 1],
@@ -135,10 +124,6 @@ class StarGAN:
         with tf.variable_scope('res_block2'):
           W_res_block2 = self._weight_variable([3, 3, 256, 256])
           b_res_block2 = self._bias_variable([256])
-          # h_res_block2 = tf.nn.relu(self._residual_block(h_res_block1, W_res_block2,
-                                                         # strides=[1, 1, 1, 1],
-                                                         # padding=[0, 1, 1, 0])
-                                    # + b_res_block2)
           h_res_block2 = tf.nn.relu(self._instance_normalization(
                                       self._residual_block(h_res_block1, W_res_block2,
                                                            strides=[1, 1, 1, 1],
@@ -153,10 +138,6 @@ class StarGAN:
         with tf.variable_scope('res_block3'):
           W_res_block3 = self._weight_variable([3, 3, 256, 256])
           b_res_block3 = self._bias_variable([256])
-          # h_res_block3 = tf.nn.relu(self._residual_block(h_res_block2, W_res_block3,
-                                                         # strides=[1, 1, 1, 1],
-                                                         # padding=[0, 1, 1, 0])
-                                    # + b_res_block3)
           h_res_block3 = tf.nn.relu(self._instance_normalization(
                                       self._residual_block(h_res_block2, W_res_block3,
                                                            strides=[1, 1, 1, 1],
@@ -171,10 +152,6 @@ class StarGAN:
         with tf.variable_scope('res_block4'):
           W_res_block4 = self._weight_variable([3, 3, 256, 256])
           b_res_block4 = self._bias_variable([256])
-          # h_res_block4 = tf.nn.relu(self._residual_block(h_res_block3, W_res_block4,
-                                                         # strides=[1, 1, 1, 1],
-                                                         # padding=[0, 1, 1, 0])
-                                    # + b_res_block4)
           h_res_block4 = tf.nn.relu(self._instance_normalization(
                                       self._residual_block(h_res_block3, W_res_block4,
                                                            strides=[1, 1, 1, 1],
@@ -189,10 +166,6 @@ class StarGAN:
         with tf.variable_scope('res_block5'):
           W_res_block5 = self._weight_variable([3, 3, 256, 256])
           b_res_block5 = self._bias_variable([256])
-          # h_res_block5 = tf.nn.relu(self._residual_block(h_res_block4, W_res_block5,
-                                                         # strides=[1, 1, 1, 1],
-                                                         # padding=[0, 1, 1, 0])
-                                    # + b_res_block5)
           h_res_block5 = tf.nn.relu(self._instance_normalization(
                                       self._residual_block(h_res_block4, W_res_block5,
                                                           strides=[1, 1, 1, 1],
@@ -207,10 +180,6 @@ class StarGAN:
         with tf.variable_scope('res_block6'):
           W_res_block6 = self._weight_variable([3, 3, 256, 256])
           b_res_block6 = self._bias_variable([256])
-          # h_res_block6 = tf.nn.relu(self._residual_block(h_res_block5, W_res_block6,
-                                                         # strides=[1, 1, 1, 1],
-                                                         # padding=[0, 1, 1, 0])
-                                    # + b_res_block6)
           h_res_block6 = tf.nn.relu(self._instance_normalization(
                                       self._residual_block(h_res_block5, W_res_block6,
                                                            strides=[1, 1, 1, 1],
@@ -234,11 +203,6 @@ class StarGAN:
                                                             dtype=np.int32)),
                                       128],
                                       dtype=tf.int32)
-          # h_deconv1 = tf.nn.relu(self._deconv2d(h_res_block6, W_deconv1,
-                                                # output_shape=output_shape,
-                                                # strides=[1, 2, 2, 1],
-                                                # padding=[0, 1, 1, 0])
-                                 # + b_deconv1)
           h_deconv1 = tf.nn.relu(self._instance_normalization(
                                     self._deconv2d(h_res_block6, W_deconv1,
                                                    output_shape=output_shape,
@@ -259,11 +223,6 @@ class StarGAN:
                                       self.img_width,
                                       64],
                                       dtype=tf.int32)
-          # h_deconv2 = tf.nn.relu(self._deconv2d(h_deconv1, W_deconv2,
-                                                # output_shape=output_shape,
-                                                # strides=[1, 2, 2, 1],
-                                                # padding=[0, 1, 1, 0])
-                                 # + b_deconv2)
           h_deconv2 = tf.nn.relu(self._instance_normalization(
                                     self._deconv2d(h_deconv1, W_deconv2,
                                                    output_shape=output_shape,
@@ -541,19 +500,59 @@ class StarGAN:
                       beta2=self.adam_beta2,
                       name='adam_generator').minimize(self.g_loss, var_list=self.g_vars)
 
-  def train(self):
+  def train(self, resume=False):
     saver = tf.train.Saver()
     summ = tf.summary.merge_all()
     with tf.Session() as sess:
-      sess.run(tf.global_variables_initializer())
-      writer = tf.summary.FileWriter('tensorboard/logger')
-
+      tensorboard_path = 'tensorboard'
+      ep = 0
+      it = 0
       summ_count = 0
-      batch_iteration = 20260 # 162079 train examples with batch_size = 8
-      for ep in list(range(self.no_epochs)):
-        ut = Utils() # shuffle data every epoch
-        for it in list(range(batch_iteration)):
-          x_batch, y_batch, y_target_batch = ut.next_batch_train(self.batch_size)
+      train_resume = 0
+
+      if resume == True:
+        with open('checkpoints/model_path.pkl', 'rb') as f:
+          model_path = pickle.load(f)
+        saver.restore(sess, model_path)
+
+        with open('checkpoints/utils.pkl', 'rb') as f:
+          ut = pickle.load(f)
+        with open('checkpoints/epoch.pkl', 'rb') as f:
+          ep = pickle.load(f)
+        with open('checkpoints/iteration.pkl', 'rb') as f:
+          it = pickle.load(f) + 1
+        with open('checkpoints/summ_count.pkl', 'rb') as f:
+          summ_count = pickle.load(f) + 1
+
+        with open('checkpoints/train_resume.pkl', 'rb') as f:
+          train_resume = pickle.load(f) + 1
+        tensorboard_path = tensorboard_path + '/train_resume_' + str(train_resume) \
+                           + '_' + str(summ_count)
+      else:
+        sess.run(tf.global_variables_initializer())
+
+        if os.path.exists(tensorboard_path):
+          shutil.rmtree(tensorboard_path)
+        os.mkdir(tensorboard_path)
+        tensorboard_path = tensorboard_path + '/train'
+
+      os.mkdir(tensorboard_path)
+      writer = tf.summary.FileWriter(tensorboard_path)
+
+      if resume == False:
+        writer.add_graph(sess.graph)
+
+      while ep < self.no_epochs:
+        if resume == False: # if resume=True use ut from the last checkpoint
+          ut = Utils() # shuffle data every epoch
+        else:
+          resume = False
+
+        while True:
+          x_batch, y_batch, y_target_batch, batch_end = ut.next_batch_train(self.batch_size)
+
+          if batch_end == True: # end of epoch
+            break
 
           if summ_count % 5 == 0:
             s = sess.run(
@@ -561,7 +560,7 @@ class StarGAN:
                   feed_dict={self.x: x_batch,
                              self.y: y_batch,
                              self.y_target: y_target_batch})
-            writer.add_summary(s, summ_count)
+            writer.add_summary(s, summ_count + 10)
 
           for _ in list(range(5)):
             _, d_loss = sess.run(
@@ -576,14 +575,36 @@ class StarGAN:
                          self.y: y_batch,
                          self.y_target: y_target_batch})
 
-          print('iteration: ' + str(it) + ', epoch: ' + str(ep))
-          if it % 100 == 0:
-            print('iteration: ' + str(it) + ', epoch: ' + str(ep) + ', '
+          print('epoch: ' + str(ep) + ', iteration: ' + str(it))
+          if it % 5 == 0:
+            print('epoch: ' + str(ep) + ', iteration: ' + str(it) + ', '
                   + 'g_loss: ' + str(g_loss) + ', '
                   + 'd_loss: ' + str(d_loss))
 
-            saver.save(sess, 'models/model_' + str(summ_count) + '.ckpt')
+            model_path = 'models/model_ep' + str(ep) + '_it' + str(it) + '.ckpt'
+            saver.save(sess, model_path)
+
+            with open('checkpoints/model_path.pkl', 'wb') as f:
+              pickle.dump(model_path, f)
+            with open('checkpoints/utils.pkl', 'wb') as f:
+              pickle.dump(ut, f)
+            with open('checkpoints/epoch.pkl', 'wb') as f:
+              pickle.dump(ep, f)
+            with open('checkpoints/iteration.pkl', 'wb') as f:
+              pickle.dump(it, f)
+            with open('checkpoints/summ_count.pkl', 'wb') as f:
+              pickle.dump(summ_count, f)
+            with open('checkpoints/train_resume.pkl', 'wb') as f:
+              pickle.dump(train_resume, f)
+
+            with open('checkpoints/info.txt', 'w') as f:
+              f.write('model_path: ' + model_path + '\n')
+              f.write('epoch: ' + str(ep) + '\n')
+              f.write('iteration: ' + str(it) + '\n')
+              f.write('summ_count: ' + str(summ_count) + '\n')
+              f.write('train_resume: ' + str(train_resume) + '\n')
 
           summ_count = summ_count + 1
+          it = it + 1
 
-      writer.add_graph(sess.graph)
+        ep = ep + 1
