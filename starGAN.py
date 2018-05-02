@@ -374,19 +374,16 @@ class StarGAN:
 
       return h_src, h_cls
 
-  def _instance_normalization(self, x, name='instance_normalization'):
+  def _instance_normalization(self, x, variance_epsilon = 1e-5, name='instance_normalization'):
     with tf.variable_scope(name):
-      depth = x.get_shape()[3]
-      scale = tf.get_variable('scale',
-                [depth],
-                initializer=tf.random_normal_initializer(1.0, 0.02, dtype=tf.float32))
-      offset = tf.get_variable('offset', [depth], initializer=tf.constant_initializer(0.0))
-      mean, variance = tf.nn.moments(x, axes=[1, 2], keep_dims=True)
-      epsilon = 1e-5
-      inv = tf.rsqrt(variance + epsilon)
-      normalized = (x - mean) * inv
+      c = x.shape[3]
+      scale = self._weight_variable([c])
+      offset = self._bias_variable([c])
 
-      return scale * normalized + offset
+      mean, variance = tf.nn.moments(x, axes=[1, 2], keep_dims=True)
+      r_variance = tf.reciprocal(variance + variance_epsilon)
+
+      return scale * (x - mean) * r_variance + offset
 
   def _conv2d(self, x, W, strides=[1, 1, 1, 1], padding=[0, 0, 0, 0]):
     """
@@ -491,20 +488,20 @@ class StarGAN:
     tf.summary.scalar('d_loss', self.d_loss)
     tf.summary.scalar('g_loss', self.g_loss)
 
-    t_vars = tf.trainable_variables()
-    self.d_vars = [var for var in t_vars if 'discriminator' in var.name]
-    self.g_vars = [var for var in t_vars if 'generator' in var.name]
+    var_list = tf.trainable_variables()
+    self.d_var_list = [var for var in var_list if 'discriminator' in var.name]
+    self.g_var_list = [var for var in var_list if 'generator' in var.name]
 
     self.d_optim = tf.train.AdamOptimizer(
                       learning_rate=self.learning_rate,
                       beta1=self.adam_beta1,
                       beta2=self.adam_beta2,
-                      name='adam_discriminator').minimize(self.d_loss, var_list=self.d_vars)
+                      name='adam_discriminator').minimize(self.d_loss, var_list=self.d_var_list)
     self.g_optim = tf.train.AdamOptimizer(
                       learning_rate=self.learning_rate,
                       beta1=self.adam_beta1,
                       beta2=self.adam_beta2,
-                      name='adam_generator').minimize(self.g_loss, var_list=self.g_vars)
+                      name='adam_generator').minimize(self.g_loss, var_list=self.g_var_list)
 
   def train(self, resume=False):
     saver = tf.train.Saver()
