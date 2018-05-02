@@ -451,12 +451,17 @@ class StarGAN:
                             labels=tf.ones_like(self.h_src_real),
                             name='src_real_sigmoid'),
                           name='src_real_loss')
-    self.src_fake_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+    self.src_fake_loss_d = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             logits=self.h_src_fake,
                             labels=tf.zeros_like(self.h_src_fake),
                             name='src_fake_sigmoid'),
                           name='src_fake_loss')
-    self.adv_loss = self.src_real_loss + self.src_fake_loss
+
+    self.src_fake_loss_g = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                            logits=self.h_src_fake,
+                            labels=tf.ones_like(self.h_src_fake),
+                            name='src_fake_sigmoid'),
+                          name='src_fake_loss')
 
     self.cls_real_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             logits=self.h_cls_real,
@@ -470,13 +475,16 @@ class StarGAN:
                           name='cls_fake_loss')
     self.rec_loss = tf.reduce_mean(tf.abs(self.x - self.img_gg), name='rec_loss')
 
-    self.d_loss = self.adv_loss + self.lambda_cls * self.cls_real_loss
-    self.g_loss = self.adv_loss + self.lambda_cls * self.cls_fake_loss \
+    self.d_loss = self.src_real_loss \
+                  + self.src_fake_loss_d \
+                  + self.lambda_cls * self.cls_real_loss
+    self.g_loss = self.src_fake_loss_g \
+                  + self.lambda_cls * self.cls_fake_loss \
                   + self.lambda_rec * self.rec_loss
 
     tf.summary.scalar('src_real_loss', self.src_real_loss)
-    tf.summary.scalar('src_fake_loss', self.src_fake_loss)
-    tf.summary.scalar('adv_loss', self.adv_loss)
+    tf.summary.scalar('src_fake_loss_d', self.src_fake_loss_d)
+    tf.summary.scalar('src_fake_loss_g', self.src_fake_loss_g)
     tf.summary.scalar('cls_real_loss', self.cls_real_loss)
     tf.summary.scalar('cls_fake_loss', self.cls_fake_loss)
     tf.summary.scalar('rec_loss', self.rec_loss)
