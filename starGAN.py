@@ -454,14 +454,14 @@ class StarGAN:
     self.src_fake_loss_d = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             logits=self.h_src_fake,
                             labels=tf.zeros_like(self.h_src_fake),
-                            name='src_fake_sigmoid'),
-                          name='src_fake_loss')
+                            name='src_fake_d_sigmoid'),
+                          name='src_fake_d_loss')
 
     self.src_fake_loss_g = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             logits=self.h_src_fake,
                             labels=tf.ones_like(self.h_src_fake),
-                            name='src_fake_sigmoid'),
-                          name='src_fake_loss')
+                            name='src_fake_g_sigmoid'),
+                          name='src_fake_g_loss')
 
     self.cls_real_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             logits=self.h_cls_real,
