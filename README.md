@@ -20,8 +20,8 @@
 &nbsp;&nbsp; IN - instance normalization,
 
 # Losses
-<p><img src='images/domain_real_loss.png' /></p>
 <p><img src='images/adv_loss.png' /></p>
+<p><img src='images/domain_real_loss.png' /></p>
 <p><img src='images/domain_fake_loss.png' /></p>
 <p><img src='images/rec_loss.png' /></p>
 <p><img src='images/disc_loss.png' /></p>
