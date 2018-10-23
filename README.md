@@ -2,7 +2,7 @@
 
 # Info
 ---
-##### My tensorflow implementation of [StarGAN: Unified Generative Adversarial Networks for Multi-Domain Image-to-Image Translation](https://arxiv.org/abs/1711.09020)
+##### My tensorflow implementation of the paper [StarGAN: Unified Generative Adversarial Networks for Multi-Domain Image-to-Image Translation](https://arxiv.org/abs/1711.09020)
 
 # Usage
 ---
