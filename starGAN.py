@@ -606,6 +606,18 @@ class StarGAN:
               f.write('iteration: ' + str(it) + '\n')
               f.write('summ_count: ' + str(summ_count) + '\n')
               f.write('train_resume: ' + str(train_resume) + '\n')
+              f.write('img_height: ' + str(self.img_height) + '\n')
+              f.write('img_width: ' + str(self.img_width) + '\n')
+              f.write('img_c: ' + str(self.img_c) + '\n')
+              f.write('nd: ' + str(self.nd) + '\n')
+              f.write('nc: ' + str(self.nc) + '\n')
+              f.write('batch_size: ' + str(self.batch_size) + '\n')
+              f.write('no_epochs: ' + str(self.no_epochs) + '\n')
+              f.write('lambda_cls: ' + str(self.lambda_cls) + '\n')
+              f.write('lambda_rec: ' + str(self.lambda_rec) + '\n')
+              f.write('learning_rate: ' + str(self.learning_rate) + '\n')
+              f.write('adam_beta1: ' + str(self.adam_beta1) + '\n')
+              f.write('adam_beta2: ' + str(self.adam_beta2) + '\n')
 
           summ_count = summ_count + 1
           it = it + 1
