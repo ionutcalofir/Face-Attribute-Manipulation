@@ -1,39 +1,8 @@
 # Face-Attribute-Manipulation
 
-# Architecture
+# Info
 ---
-### Generator network architecture
-<p><img src='images/generator_architecture.png' /></p>
-
-### Discriminator network architecture
-<p><img src='images/discriminator_architecture.png' /></p>
-
-###### Note:
-&nbsp;&nbsp; h - image height,
-&nbsp;&nbsp; w - image widht,
-&nbsp;&nbsp; nd - the number of domains,
-&nbsp;&nbsp; nc - the dimension of domain labels, same as nd,
-&nbsp;&nbsp; N - the number of output channels,
-&nbsp;&nbsp; K - kernel size,
-&nbsp;&nbsp; S - stride size,
-&nbsp;&nbsp; P - padding size,
-&nbsp;&nbsp; IN - instance normalization,
-
-# Losses
-<p><img src='images/adv_loss.png' /></p>
-<p><img src='images/domain_real_loss.png' /></p>
-<p><img src='images/domain_fake_loss.png' /></p>
-<p><img src='images/rec_loss.png' /></p>
-<p><img src='images/disc_loss.png' /></p>
-<p><img src='images/gen_loss.png' /></p>
-
-###### Note:
-&nbsp;&nbsp; (1) - adversarial loss,
-&nbsp;&nbsp; (2) - domain classification loss of real images,
-&nbsp;&nbsp; (3) - domain classification loss of fake iamges,
-&nbsp;&nbsp; (4) - reconstruction loss,
-&nbsp;&nbsp; (5) - discriminator loss,
-&nbsp;&nbsp; (6) - generator loss,
+##### My tensorflow implementation of [StarGAN: Unified Generative Adversarial Networks for Multi-Domain Image-to-Image Translation](https://arxiv.org/abs/1711.09020)
 
 # Usage
 ---
