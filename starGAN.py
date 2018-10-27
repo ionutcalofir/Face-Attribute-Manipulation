@@ -623,3 +623,56 @@ class StarGAN:
           it = it + 1
 
         ep = ep + 1
+
+  def predict_test(self):
+    saver = tf.train.Saver()
+    with tf.Session() as sess:
+      with open('checkpoints/model_path.pkl', 'rb') as f:
+        model_path = pickle.load(f)
+      saver.restore(sess, model_path)
+
+      imgs_and_loss = []
+      with open('checkpoints/utils.pkl', 'rb') as f:
+          ut = pickle.load(f)
+      it = 0
+      while True:
+        it += 1
+        x_batch, y_batch, y_target_batch, batch_end = ut.next_batch_test(self.batch_size)
+        if batch_end == True:
+          break
+
+        x_v = []
+        x_v.append(x_batch[0])
+        g = 0
+        for i, y_target in enumerate(y_target_batch):
+          y_target = np.reshape(y_target, (-1, 1, 1, len(y_target)))
+
+          x, g_loss = sess.run(
+              [self.img_g, self.g_loss],
+              feed_dict={self.x: x_batch,
+                         self.y: y_batch,
+                         self.y_target: y_target})
+
+          x_v.append(x[0])
+          g += g_loss
+
+        imgs_and_loss.append((x_v, g))
+        print('Iteration: ', it)
+
+      imgs_and_loss = sorted(imgs_and_loss, key=lambda item: item[1])
+      no = 20 # number of images
+      path = 'images/test_images'
+      for i in range(min(no, len(imgs_and_loss))):
+        p_path = path + '/images_' + str(i)
+        if os.path.exists(p_path):
+          shutil.rmtree(p_path)
+        os.mkdir(p_path)
+
+        sz = imgs_and_loss[i][0][0].shape # original image
+        x_final = np.zeros((sz[0], sz[1] * len(imgs_and_loss[i][0]), sz[2]))
+        ind = 0
+        for n_img, img in enumerate(imgs_and_loss[i][0]):
+          x_final[:, ind:ind + sz[1], :] = img
+          ind += sz[1]
+          ut.save_img(ut.denormalize_img(img), p_path + '/p_' + str(n_img) + '.png')
+        ut.save_img(ut.denormalize_img(x_final), p_path + '/p_final.png')
