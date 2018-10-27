@@ -4,6 +4,15 @@
 ---
 My tensorflow implementation of the paper [StarGAN: Unified Generative Adversarial Networks for Multi-Domain Image-to-Image Translation](https://arxiv.org/abs/1711.09020)
 
+# Results
+---
+<p><img src='images/results/p_final_0.png' /></p>
+<p><img src='images/results/p_final_1.png' /></p>
+<p><img src='images/results/p_final_2.png' /></p>
+
+###### Note:
+&nbsp;&nbsp; From left to right: original image, black hair, blond hair, male, female, young, old, smile
+
 # Usage
 ---
 ##### 1. Download dataset into ```./dataset```. It should be like this:
