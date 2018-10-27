@@ -1,0 +1,17 @@
+model_path: models/model_ep1_it20700.ckpt
+epoch: 1
+iteration: 20700
+summ_count: 20700
+train_resume: 9
+img_height: 64
+img_width: 64
+img_c: 3
+nd: 7
+nc: 7
+batch_size: 8
+no_epochs: 2
+lambda_cls: 1
+lambda_rec: 10
+learning_rate: 0.0001
+adam_beta1: 0.5
+adam_beta2: 0.999
