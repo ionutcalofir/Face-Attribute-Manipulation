@@ -62,7 +62,6 @@ class Utils:
     y_batch = []
 
     x_test, y_test, batch_end = self.ds.get_test_batch(n_batch)
-    y_target = self.y_target(len(y_test[0]), len(y_test))
     for x in x_test:
       x_img = cv2.imread(x)
       x_img = cv2.cvtColor(x_img, cv2.COLOR_BGR2RGB)
@@ -72,13 +71,21 @@ class Utils:
       x_batch.append(x_img)
 
     y_batch = np.reshape(y_test, (-1, 1, 1, len(y_test[0])))
-    y_target_batch = np.reshape(y_target, (-1, 1, 1, len(y_target[0])))
+
+    y_target = [[1, 0, 0, 0, 0, 0, 0], # black hair
+                [0, 1, 0, 0, 0, 0, 0], # blond hair
+                [0, 0, 1, 0, 0, 0, 0], # male
+                [0, 0, 0, 1, 0, 0, 0], # female
+                [0, 0, 0, 0, 1, 0, 0], # young
+                [0, 0, 0, 0, 0, 1, 0], # old
+                [0, 0, 0, 0, 0, 0, 1] # smile
+               ]
 
     x_batch = np.array(x_batch)
 
     return x_batch.astype(np.float32), \
            y_batch.astype(np.float32), \
-           y_target_batch.astype(np.float32), \
+           y_target, \
            batch_end
 
   def y_target(self, n_labels, n_batch):
@@ -93,6 +100,11 @@ class Utils:
         diff = n_labels - len(label)
         for z in list(range(diff)):
           label.insert(0, 0)
+
+        if (label[0] == label[1] and label[0] == 1) \
+           or (label[2] == label[3] and label[2] == 1) \
+           or (label[4] == label[5] and label[4] == 1):
+          continue
 
         self._y_target.append(label)
 
