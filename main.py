@@ -9,6 +9,8 @@ if __name__ == '__main__':
                                  action='store_true')
   parser.add_argument('--resume', help='if true, resume training from last checkpoint',
                                   action='store_true')
+  parser.add_argument('--predict_test', help='run the neural net on test set',
+                                 action='store_true')
   parser.add_argument('--batchSize', help='batch size for training, default=8',
                                      type=int,
                                      default=8)
@@ -22,5 +24,10 @@ if __name__ == '__main__':
       model.train(resume=True)
     else:
       model.train()
+  elif args.predict_test:
+    model = StarGAN(batch_size=1)
+    model.build()
+
+    model.predict_test()
   else:
     print('Nothing to be done!')
