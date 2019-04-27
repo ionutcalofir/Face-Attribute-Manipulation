@@ -20,7 +20,9 @@ Results after running the algorithm 1 epoch.
 
 # Usage
 Tensorflow: 1.7.0
+
 CUDA: 9.0.176
+
 cuDNN: 7.0.5
 
 ---
