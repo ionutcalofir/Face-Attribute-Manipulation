@@ -19,6 +19,10 @@ Results after running the algorithm 1 epoch.
 <p><img src='images/results/image_6.png' /></p>
 
 # Usage
+Tensorflow: 1.7.0
+CUDA: 9.0.176
+cuDNN: 7.0.5
+
 ---
 ##### 1. Download dataset into ```./dataset```. It should be like this:
 ```
